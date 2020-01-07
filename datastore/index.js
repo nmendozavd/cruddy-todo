@@ -9,10 +9,33 @@ var items = {};
 
 exports.create = (text, callback) => {
   // asy - possible callback doesn't complete before next lines
-  var id = counter.getNextUniqueId(callback);
-  items[id] = text;
-  callback(null, { id, text });
+  // needed to pull strNum, by defining it in the call of the getNextUniqueID
+  counter.getNextUniqueId((err, strNum) => {
+    if (err) {
+      throw ('getNextUniqueId unsuccessful');
+    } else {
+      var id = strNum;
+      items[id] = text;
+      fs.writeFile(exports.dataDir, text, (err, id) => {
+        if (err) {
+          throw ('writeFile error!');
+        } else {
+          callback(null, { id, text });
+        }
+        // } else {
+        //   fs.writeFile(exports.dataDir, text, (err, text) => {
+        //     if (err) {
+        //       console.log ('writeFile Error');
+        //     } else {
+        //       callback(null, { id, text });
+        //     }
+        //   });
+        // }
+      });
+    }
+  });
 };
+
 
 exports.readAll = (callback) => {
   var data = _.map(items, (text, id) => {

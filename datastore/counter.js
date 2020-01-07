@@ -49,6 +49,7 @@ exports.getNextUniqueId = (callback) => {
           throw ('writeCounter Error');
         } else {
           callback(null, strNum);
+          console.log('writecounterID', strNum);
         }
       });
     }
