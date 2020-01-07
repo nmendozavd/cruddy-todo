@@ -8,6 +8,7 @@ var items = {};
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 
 exports.create = (text, callback) => {
+  // asy - possible callback doesn't complete before next lines
   var id = counter.getNextUniqueId(callback);
   items[id] = text;
   callback(null, { id, text });
