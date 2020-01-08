@@ -2,6 +2,11 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
+// in order to read contents in files we need promises library, we import
+const Promise = require('bluebird');
+// need to promisify readFilePromise
+const readFilePromise = Promise.promisify(fs.readFile);
+
 
 var items = {};
 
@@ -9,42 +14,53 @@ var items = {};
 
 exports.create = (text, callback) => {
   // asy - possible callback doesn't complete before next lines
-  // needed to pull strNum, by defining it in the call of the getNextUniqueID
-  counter.getNextUniqueId((err, strNum) => {
+  // strNum is now passed from getNextUniqueID, and defined as the second parameter ID
+  counter.getNextUniqueId((err, id) => {
     if (err) {
-      throw ('getNextUniqueId unsuccessful');
+      // we want to return error here and stop programming from running if error
+      return callback (err);
     } else {
-      var id = strNum;
-      items[id] = text;
-      fs.writeFile(path.join(exports.dataDir, id + '.txt'), text, (err) => {
+      var filePath = path.join(exports.dataDir, `${id}.txt`);
+      fs.writeFile(filePath, text, (err) => {
         if (err) {
-          console.log('writeFile error!');
+          callback(err);
         } else {
           callback(null, { id, text });
-          // console.log(items);
         }
       });
-      // callback(null, { id, text });
     }
   });
 };
 
 
 exports.readAll = (callback) => {
-  fs.readdir('./data/', (err, data) => {
-    var data = _.map(items, (text, id) => {
-      return { id, text};
-      console.log('id:', id);
-    });
-    callback(null, data);
+  // data, second parameter is array of the folder names, we named files = [];
+  fs.readdir(exports.dataDir, (err, files) => {
+    if (err) {
+      callback(err);
+    } else {
+      // map turns files into array of objects in data
+      var data = _.map(files, (file) => {
+        // extract ID
+        // path > /users/noelmendoza/.../00001.txt
+        // path.basename grabs the end of the file name and removes .txt
+        var id = path.basename(file, '.txt');
+        // we want to return this because this is what displays to user, the file names if we refresh
+        // we add readFilePromise to return array of promises > future values
+        var filePath = path.join(exports.dataDir, file);
+        return readFilePromise(filePath).then((fileData) => {
+          return {
+            id: id,
+            text: fileData.toString()
+          };
+        });
+      });
+      // call all promises, then callback
+      Promise.all(data).then((items) => {
+        callback(null, items);
+      });
+    }
   });
-
-  //   var data = _.map(items, (text, id) => {
-  //     return { id, text };
-  //   });
-  //   callback(null, data);
-  // };
-
 };
 
 exports.readOne = (id, callback) => {
