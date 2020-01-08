@@ -43,13 +43,12 @@ exports.getNextUniqueId = (callback) => {
     if (err) {
       throw ('readCounter Error');
     } else {
-      count = retreiveNum + 1;
+      var count = retreiveNum + 1;
       writeCounter(count, (err, strNum) => {
         if (err) {
           throw ('writeCounter Error');
         } else {
           callback(null, strNum);
-          console.log('writecounterID', strNum);
         }
       });
     }

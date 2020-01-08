@@ -16,32 +16,35 @@ exports.create = (text, callback) => {
     } else {
       var id = strNum;
       items[id] = text;
-      fs.writeFile(exports.dataDir, text, (err, id) => {
+      fs.writeFile(path.join(exports.dataDir, id + '.txt'), text, (err) => {
         if (err) {
-          throw ('writeFile error!');
+          console.log('writeFile error!');
         } else {
           callback(null, { id, text });
+          // console.log(items);
         }
-        // } else {
-        //   fs.writeFile(exports.dataDir, text, (err, text) => {
-        //     if (err) {
-        //       console.log ('writeFile Error');
-        //     } else {
-        //       callback(null, { id, text });
-        //     }
-        //   });
-        // }
       });
+      // callback(null, { id, text });
     }
   });
 };
 
 
 exports.readAll = (callback) => {
-  var data = _.map(items, (text, id) => {
-    return { id, text };
+  fs.readdir('./data/', (err, data) => {
+    var data = _.map(items, (text, id) => {
+      return { id, text};
+      console.log('id:', id);
+    });
+    callback(null, data);
   });
-  callback(null, data);
+
+  //   var data = _.map(items, (text, id) => {
+  //     return { id, text };
+  //   });
+  //   callback(null, data);
+  // };
+
 };
 
 exports.readOne = (id, callback) => {
@@ -65,12 +68,15 @@ exports.update = (id, text, callback) => {
 
 exports.delete = (id, callback) => {
   var item = items[id];
-  delete items[id];
+  // delete items[id];
   if (!item) {
     // report an error if item not found
     callback(new Error(`No item with id: ${id}`));
   } else {
-    callback();
+    //console.log(`./data/${id}`);
+    // callback(fs.unlink(`./data/${id}`), () => {
+    //   console.log('success');
+    // });
   }
 };
 
